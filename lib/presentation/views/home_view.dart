@@ -7,6 +7,7 @@ import 'package:a4_iot/presentation/controllers/courses.dart';
 import 'package:a4_iot/presentation/controllers/users.dart';
 import 'package:a4_iot/presentation/widget/course_list.dart';
 import 'package:a4_iot/presentation/widget/profile_card.dart';
+import 'package:a4_iot/utils/ble_listening.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -16,7 +17,12 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  Widget _buildPage(HomeUsers currentUser, List<HomeCourses> courses) {
+  Widget _buildPage(
+    HomeUsers currentUser,
+    List<HomeCourses> courses,
+    String bleStatusJson,
+    String bleNextClassJson,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -38,12 +44,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       proms: currentUser.promsName,
                       campus: currentUser.campusName,
                       avatarUrl: currentUser.avatarUrl,
+                      bleStatusJson: bleStatusJson.isEmpty
+                          ? null
+                          : bleStatusJson,
                     ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: 500,
-                    child: courses.isEmpty
+                    child: courses.isEmpty && bleNextClassJson.isEmpty
                         ? const Center(
                             child: Text(
                               "Aucun cours pour le moment",
@@ -53,7 +62,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
                               ),
                             ),
                           )
-                        : CourseList(courses: courses),
+                        : CourseList(
+                            courses: courses,
+                            bleNextClassJson: bleNextClassJson.isEmpty
+                                ? null
+                                : bleNextClassJson,
+                          ),
                   ),
                 ],
               ),
@@ -67,6 +81,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(homeUsersProvider);
+    final bleStatusJson = ref.watch(statusDataProvider);
+    final bleNextClassJson = ref.watch(nextClassDataProvider);
+
     return Scaffold(
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -80,7 +97,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
               child: CircularProgressIndicator(color: Colors.green),
             ),
             error: (e, _) => Center(child: Text("Erreur cours : $e")),
-            data: (coursesData) => _buildPage(currentUser, coursesData),
+            data: (coursesData) => _buildPage(
+              currentUser,
+              coursesData,
+              bleStatusJson,
+              bleNextClassJson,
+            ),
           );
         },
       ),

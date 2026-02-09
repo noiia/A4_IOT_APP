@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// lib/utils/ble_listening.dart (ou équivalent contrôleur BLE)
 
 import 'dart:async';
 import 'dart:convert';
@@ -12,10 +12,17 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 const String SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
-const String CHARACTERISTIC_UUID = "abcd1234-1234-1234-1234-abcdefabcdef";
+const String CHARACTERISTIC_WRITE_UUID = "abcd1234-1234-1234-1234-abcdefabcdef";
+const String CHARACTERISTIC_STATUS_UUID =
+    "12345678-1234-1234-1234-123456789abc";
+const String CHARACTERISTIC_NEXT_CLASS_UUID =
+    "12345678-1234-1234-1234-123456789abd";
 
 final isConnectedProvider = StateProvider<bool>((ref) => false);
 final connectedDeviceProvider = StateProvider<BluetoothDevice?>((ref) => null);
+
+final statusDataProvider = StateProvider<String>((ref) => '');
+final nextClassDataProvider = StateProvider<String>((ref) => '');
 
 final bleControllerProvider = Provider<BleController>((ref) {
   return BleController(ref);
@@ -25,6 +32,8 @@ class BleController {
   final Ref ref;
   StreamSubscription<List<ScanResult>>? _scanSubscription;
   StreamSubscription<BluetoothConnectionState>? _connectionSubscription;
+  StreamSubscription<List<int>>? _statusSub;
+  StreamSubscription<List<int>>? _nextClassSub;
 
   BleController(this.ref);
 
@@ -50,7 +59,6 @@ class BleController {
           );
 
           await stopScan();
-
           await connectToDevice(r.device);
           break;
         }
@@ -71,6 +79,7 @@ class BleController {
     try {
       await FlutterBluePlus.stopScan();
       await _scanSubscription?.cancel();
+      _scanSubscription = null;
     } catch (e) {
       print("Erreur lors de l'arrêt du scan: $e");
     }
@@ -81,7 +90,6 @@ class BleController {
       print("Tentative de connexion...");
 
       await stopScan();
-
       await Future.delayed(const Duration(milliseconds: 200));
 
       await device.connect(
@@ -93,9 +101,12 @@ class BleController {
       ref.read(connectedDeviceProvider.notifier).state = device;
       print("CONNECTÉ à ${device.platformName} !");
 
+      await _setupNotifications(device);
+
       _connectionSubscription = device.connectionState.listen((state) {
         if (state == BluetoothConnectionState.disconnected) {
           print("Perte de connexion");
+          _cleanupStreams();
           ref.read(isConnectedProvider.notifier).state = false;
           ref.read(connectedDeviceProvider.notifier).state = null;
         }
@@ -103,18 +114,75 @@ class BleController {
     } catch (e) {
       print("Échec connexion: $e");
       ref.read(isConnectedProvider.notifier).state = false;
-
       try {
         await device.disconnect();
       } catch (_) {}
     }
   }
 
+  Future<void> _setupNotifications(BluetoothDevice device) async {
+    try {
+      final services = await device.discoverServices();
+
+      BluetoothCharacteristic? statusChar;
+      BluetoothCharacteristic? nextClassChar;
+
+      for (var service in services) {
+        if (service.uuid.toString().toLowerCase() ==
+            SERVICE_UUID.toLowerCase()) {
+          for (var c in service.characteristics) {
+            final uuid = c.uuid.toString().toLowerCase();
+            if (uuid == CHARACTERISTIC_STATUS_UUID.toLowerCase()) {
+              statusChar = c;
+            } else if (uuid == CHARACTERISTIC_NEXT_CLASS_UUID.toLowerCase()) {
+              nextClassChar = c;
+            }
+          }
+        }
+      }
+
+      if (statusChar != null) {
+        await statusChar.setNotifyValue(true);
+        _statusSub = statusChar.lastValueStream.listen((value) {
+          final json = utf8.decode(value);
+          print("STATUS BLE: $json");
+          ref.read(statusDataProvider.notifier).state = json;
+        });
+        device.cancelWhenDisconnected(_statusSub!);
+      } else {
+        print("Status characteristic non trouvée");
+      }
+
+      if (nextClassChar != null) {
+        await nextClassChar.setNotifyValue(true);
+        _nextClassSub = nextClassChar.lastValueStream.listen((value) {
+          final json = utf8.decode(value);
+          print("NEXT CLASS BLE: $json");
+          ref.read(nextClassDataProvider.notifier).state = json;
+        });
+        device.cancelWhenDisconnected(_nextClassSub!);
+      } else {
+        print("NextClass characteristic non trouvée");
+      }
+    } catch (e) {
+      print("Erreur _setupNotifications: $e");
+    }
+  }
+
+  void _cleanupStreams() {
+    _statusSub?.cancel();
+    _nextClassSub?.cancel();
+    _connectionSubscription?.cancel();
+    _statusSub = null;
+    _nextClassSub = null;
+    _connectionSubscription = null;
+  }
+
   Future<void> disconnect() async {
     final device = ref.read(connectedDeviceProvider);
     if (device != null) {
       await device.disconnect();
-      await _connectionSubscription?.cancel();
+      _cleanupStreams();
       ref.read(isConnectedProvider.notifier).state = false;
       ref.read(connectedDeviceProvider.notifier).state = null;
       print("Déconnecté manuellement");
@@ -123,12 +191,12 @@ class BleController {
 
   Future<bool> _requestPermissions() async {
     if (Platform.isAndroid) {
-      Map<Permission, PermissionStatus> statuses = await [
+      final statuses = await [
         Permission.bluetoothScan,
         Permission.bluetoothConnect,
         Permission.location,
       ].request();
-      return statuses.values.every((status) => status.isGranted);
+      return statuses.values.every((s) => s.isGranted);
     }
     return true;
   }
@@ -142,10 +210,9 @@ class BleController {
     }
 
     try {
-      print("Recherche du service et de la caractéristique...");
+      print("Recherche du service et de la caractéristique d'écriture...");
 
-      List<BluetoothService> services = await device.discoverServices();
-
+      final services = await device.discoverServices();
       BluetoothCharacteristic? targetChar;
 
       for (var service in services) {
@@ -153,7 +220,7 @@ class BleController {
             SERVICE_UUID.toLowerCase()) {
           for (var c in service.characteristics) {
             if (c.uuid.toString().toLowerCase() ==
-                CHARACTERISTIC_UUID.toLowerCase()) {
+                CHARACTERISTIC_WRITE_UUID.toLowerCase()) {
               targetChar = c;
               break;
             }
@@ -164,31 +231,26 @@ class BleController {
       if (targetChar != null) {
         print("Préparation de la commande JSON...");
         print("User badge ID: ${user?.badgeId}");
-        DateTime now = DateTime.now();
-        String formattedDate = DateFormat(
-          'yyyy-MM-dd\'T\'HH:mm:00',
-        ).format(now);
+        final now = DateTime.now();
+        final formattedDate = DateFormat("yyyy-MM-dd'T'HH:mm:00").format(now);
 
-        Map<String, dynamic> command = {
+        final command = {
           "action": "open",
-          "badge_id": user?.badgeId,
+          "badge_id": user?.badgeId ?? "TEST_USER",
           "timestamp": formattedDate,
         };
 
-        String jsonString = jsonEncode(command);
+        final jsonString = jsonEncode(command);
         print("Envoi: $jsonString");
 
-        List<int> bytes = utf8.encode(jsonString);
-
+        final bytes = utf8.encode(jsonString);
         await targetChar.write(bytes, withoutResponse: false);
 
         print("Commande envoyée avec succès !");
       } else {
-        print("Caractéristique introuvable. Vérifie les UUIDs dans l'Arduino.");
+        print("Caractéristique d'écriture introuvable.");
         print("Attendu Service: $SERVICE_UUID");
-        print("Attendu Char: $CHARACTERISTIC_UUID");
-
-        print("Services trouvés:");
+        print("Attendu Char: $CHARACTERISTIC_WRITE_UUID");
         for (var s in services) {
           print("- Service: ${s.uuid}");
           for (var c in s.characteristics) {

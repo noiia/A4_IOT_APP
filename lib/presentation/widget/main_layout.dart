@@ -53,7 +53,10 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     // Écoute l'état de connexion pour mettre à jour l'UI
     final isConnected = ref.watch(isConnectedProvider);
     final controller = ref.read(bleControllerProvider);
-
+    final statusJson = ref.watch(statusDataProvider);
+    final nextClassJson = ref.watch(nextClassDataProvider);
+    print("UI STATUS: $statusJson");
+    print("UI NEXT CLASS: $nextClassJson");
     return Scaffold(
       // Barre optionnelle pour confirmer la connexion visuellement
       appBar: isConnected
@@ -108,14 +111,13 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
                   controller.startAutoConnect('MyDoorLock');
                 }
               },
-              // COULEUR : Orange (Ouvrir) ou Bleu (Connecter)
+
               backgroundColor: isConnected ? Colors.orange : Colors.blueAccent,
               // ICÔNE : Cadenas ouvert ou Bluetooth
               icon: Icon(
                 isConnected ? Icons.lock_open : Icons.bluetooth_searching,
                 size: 28,
               ),
-              // TEXTE : OUVRIR ou CONNECTER
               label: Text(
                 isConnected ? "OUVRIR PORTE" : "CONNECTER",
                 style: const TextStyle(
