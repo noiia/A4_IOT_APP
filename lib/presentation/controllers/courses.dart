@@ -6,7 +6,6 @@ import 'package:a4_iot/domain/entities/courses.dart';
 import 'package:a4_iot/data/datasources/local/courses.dart';
 import 'package:a4_iot/data/datasources/remote/courses.dart';
 import 'package:a4_iot/data/repositories/courses_impl.dart';
-import 'package:a4_iot/presentation/controllers/reservations.dart';
 
 final supabaseProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -76,21 +75,6 @@ final coursesByReservationIdsProvider =
       );
       final ids = userId.split(',');
       return getCoursesByReservationIds(ids);
-    });
-
-final userCoursesProvider = FutureProvider.autoDispose
-    .family<List<Courses>, String>((ref, userBadgeId) async {
-      final reservations = await ref.read(
-        reservationsFromUsersReservesByUserIdProvider(userBadgeId).future,
-      );
-
-      if (reservations.isEmpty) return [];
-
-      return ref.read(
-        coursesByReservationIdsProvider(
-          reservations.map((e) => e.id).join(','),
-        ).future,
-      );
     });
 
 final homeCoursesIdsProvider = FutureProvider.autoDispose
