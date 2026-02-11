@@ -52,7 +52,7 @@ class HomeCoursesModel extends HomeCourses {
           : (coursesMap['instructor'] ?? 'Inconnu'),
       room: coursesMap['room_name'] ?? coursesMap['rooms'] ?? 'Inconnu',
       reservationStart: DateTime.parse(coursesMap['start'] as String),
-      reservationEnd: DateTime.parse(coursesMap['ends'] as String),
+      reservationEnd: DateTime.parse(coursesMap['end'] as String),
     );
   }
 
@@ -61,8 +61,8 @@ class HomeCoursesModel extends HomeCourses {
     "course_name": courseName,
     "instructor": instructor,
     "rooms": room,
-    "reservation_start": reservationStart.toIso8601String(),
-    "reservation_end": reservationEnd.toIso8601String(),
+    "start": reservationStart.toIso8601String(),
+    "end": reservationEnd.toIso8601String(),
   };
 
   factory HomeCoursesModel.fromCache(Map<String, dynamic> coursesMap) {
