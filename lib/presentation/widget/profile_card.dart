@@ -41,6 +41,8 @@ class ProfileCard extends StatelessWidget {
       switch (bleStatus['status']) {
         case 'checking_access':
           return 'Vérification en cours...';
+        case 'not_authorized':
+          return 'Accès refusé';
         case 'access_granted':
           return 'Accès autorisé';
         case 'door_opening':
