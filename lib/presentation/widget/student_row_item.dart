@@ -5,6 +5,8 @@ class StudentRowItem extends StatelessWidget {
   final String lastName;
   final String avatarUrl;
   final bool isPresent;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const StudentRowItem({
     super.key,
@@ -12,6 +14,8 @@ class StudentRowItem extends StatelessWidget {
     required this.lastName,
     required this.avatarUrl,
     required this.isPresent,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -84,6 +88,42 @@ class StudentRowItem extends StatelessWidget {
               ],
             ),
           ),
+          if (onEdit != null || onDelete != null) ...[
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit' && onEdit != null) {
+                  onEdit!();
+                } else if (value == 'delete' && onDelete != null) {
+                  onDelete!();
+                }
+              },
+              itemBuilder: (context) => [
+                if (onEdit != null)
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 18),
+                        SizedBox(width: 8),
+                        Text('Modifier'),
+                      ],
+                    ),
+                  ),
+                if (onDelete != null)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.remove_circle_outline, size: 18, color: Colors.orange.shade700),
+                        const SizedBox(width: 8),
+                        Text('Retirer de la promo', style: TextStyle(color: Colors.orange.shade700)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );

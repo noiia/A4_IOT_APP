@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:a4_iot/presentation/controllers/users.dart';
-import 'package:a4_iot/presentation/views/home_view.dart';
 import 'package:a4_iot/presentation/views/login_view.dart';
 import 'package:a4_iot/presentation/views/prom_view.dart';
+import 'package:a4_iot/presentation/views/profile_view.dart';
 import 'package:a4_iot/presentation/views/admin/admin_dashboard_view.dart';
 import 'package:a4_iot/utils/ble_listening.dart';
 
@@ -70,7 +70,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
         // Pages selon le rôle
         final pages = isTeacher
             ? const [AdminDashboardView(), PromsPageView()]
-            : const [HomeView(), PromsPageView()];
+            : const [ProfileView(), PromsPageView()];
         
         // Labels selon le rôle
         final firstLabel = isTeacher ? 'Dashboard' : 'Profil';
