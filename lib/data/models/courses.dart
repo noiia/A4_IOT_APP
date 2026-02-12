@@ -15,15 +15,21 @@ class CoursesModel extends Courses {
 
   factory CoursesModel.fromMap(Map<String, dynamic> map) {
     return CoursesModel(
-      id: map['id'],
-      courseName: map['course_name'],
-      instructorId: map['instructor_id'],
-      roomId: map['room_id'],
-      createdAt: DateTime.parse(map['created_at'] as String),
-      start: DateTime.parse(map['start'] as String),
-      end: DateTime.parse(map['end'] as String),
-      room: map['room'],
-      promsId: map['proms_id']
+      id: map['id']?.toString() ?? '',
+      courseName: map['course_name']?.toString() ?? 'Cours sans nom',
+      instructorId: map['instructor_id']?.toString() ?? '',
+      roomId: map['room_id']?.toString() ?? '',
+      createdAt: map['created_at'] != null 
+          ? DateTime.parse(map['created_at'].toString()) 
+          : DateTime.now(),
+      start: map['start'] != null 
+          ? DateTime.parse(map['start'].toString()) 
+          : DateTime.now(),
+      end: map['end'] != null 
+          ? DateTime.parse(map['end'].toString()) 
+          : DateTime.now().add(Duration(hours: 1)),
+      room: map['room']?.toString() ?? 'Salle inconnue',
+      promsId: map['proms_id']?.toString() ?? ''
     );
   }
 
@@ -52,16 +58,20 @@ class HomeCoursesModel extends HomeCourses {
 
   factory HomeCoursesModel.fromMap(Map<String, dynamic> coursesMap) {
     return HomeCoursesModel(
-      id: coursesMap['reservation_id'] ?? coursesMap['id'] ?? '',
-      courseName: coursesMap['course_name'] ?? 'Inconnu',
+      id: coursesMap['reservation_id']?.toString() ?? coursesMap['id']?.toString() ?? '',
+      courseName: coursesMap['course_name']?.toString() ?? 'Inconnu',
       instructor:
           (coursesMap['instructor_first_name'] != null &&
               coursesMap['instructor_last_name'] != null)
           ? "${coursesMap['instructor_first_name']} ${coursesMap['instructor_last_name']}"
-          : (coursesMap['instructor'] ?? 'Inconnu'),
-      room: coursesMap['room_name'] ?? coursesMap['rooms'] ?? 'Inconnu',
-      reservationStart: DateTime.parse(coursesMap['start'] as String),
-      reservationEnd: DateTime.parse(coursesMap['end'] as String),
+          : (coursesMap['instructor']?.toString() ?? 'Inconnu'),
+      room: coursesMap['room_name']?.toString() ?? coursesMap['rooms']?.toString() ?? 'Inconnu',
+      reservationStart: coursesMap['start'] != null 
+          ? DateTime.parse(coursesMap['start'].toString()) 
+          : DateTime.now(),
+      reservationEnd: coursesMap['end'] != null 
+          ? DateTime.parse(coursesMap['end'].toString()) 
+          : DateTime.now().add(Duration(hours: 1)),
     );
   }
 

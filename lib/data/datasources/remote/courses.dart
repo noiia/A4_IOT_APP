@@ -65,13 +65,10 @@ class CourseRemoteDatasource {
   }
 
   Future<List<Map<String, dynamic>>> fetchHomeCourseByUserId(String id) async {
-    print(id);
     final res = await Supabase.instance.client.rpc(
       'get_today_reservations_by_user',
       params: {'p_user_id': id},
     );
-
-    print('res: $res');
 
     return List<Map<String, dynamic>>.from(res);
   }

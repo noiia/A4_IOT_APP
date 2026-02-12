@@ -1,11 +1,11 @@
 class Pointing {
   final String id;
   final String userBadgeId;
-  final DateTime createdAt;
+  final DateTime date;
 
   Pointing({
     required this.id,
     required this.userBadgeId,
-    required this.createdAt,
+    required this.date,
   });
 }

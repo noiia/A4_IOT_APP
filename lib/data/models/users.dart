@@ -14,14 +14,16 @@ class UsersModel extends Users {
 
   factory UsersModel.fromMap(Map<String, dynamic> map) {
     return UsersModel(
-      id: map['auth_user_id'],
-      badgeId: map['badge_id'],
-      firstName: map['first_name'],
-      lastName: map['last_name'],
-      status: map['status'],
-      avatarUrl: map['avatar_url'],
-      promsId: map['proms_id'],
-      createdAt: DateTime.parse(map['created_at'] as String),
+      id: map['auth_user_id']?.toString() ?? '',
+      badgeId: map['badge_id']?.toString() ?? '',
+      firstName: map['first_name']?.toString() ?? '',
+      lastName: map['last_name']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'student',
+      avatarUrl: map['avatar_url']?.toString() ?? '',
+      promsId: map['proms_id']?.toString() ?? '',
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'].toString())
+          : DateTime.now(),
     );
   }
 
@@ -52,16 +54,16 @@ class HomeUsersModel extends HomeUsers {
 
   factory HomeUsersModel.fromMap(Map<String, dynamic> map) {
     return HomeUsersModel(
-      id: map['auth_user_id'],
-      badgeId: map['badge_id'],
-      firstName: map['first_name'],
-      lastName: map['last_name'],
-      status: map['status'],
-      avatarUrl: map['avatar_url'],
-      promsName: map['proms_name'],
-      campusName: map['campus_name'],
+      id: map['auth_user_id']?.toString() ?? '',
+      badgeId: map['badge_id']?.toString() ?? '',
+      firstName: map['first_name']?.toString() ?? '',
+      lastName: map['last_name']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'student',
+      avatarUrl: map['avatar_url']?.toString() ?? '',
+      promsName: map['proms_name']?.toString() ?? 'Aucune promo',
+      campusName: map['campus_name']?.toString() ?? 'Aucun campus',
       lastPointing: map['last_pointing'] != null
-          ? DateTime.parse(map['last_pointing'] as String)
+          ? DateTime.parse(map['last_pointing'].toString())
           : null,
     );
   }

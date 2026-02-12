@@ -7,6 +7,7 @@ import 'package:a4_iot/presentation/controllers/users.dart';
 import 'package:a4_iot/presentation/views/home_view.dart';
 import 'package:a4_iot/presentation/views/login_view.dart';
 import 'package:a4_iot/presentation/views/prom_view.dart';
+import 'package:a4_iot/presentation/views/admin/admin_dashboard_view.dart';
 import 'package:a4_iot/utils/ble_listening.dart';
 
 class MainLayout extends ConsumerStatefulWidget {
@@ -23,7 +24,6 @@ Future<bool> hasInternet() async {
 
 class _MainLayoutState extends ConsumerState<MainLayout> {
   int _currentIndex = 0;
-  final List<Widget> _pages = const [HomeView(), PromsPageView()];
 
   @override
   void initState() {
@@ -57,7 +57,26 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     final nextClassJson = ref.watch(nextClassDataProvider);
     print("UI STATUS: $statusJson");
     print("UI NEXT CLASS: $nextClassJson");
-    return Scaffold(
+    
+    // Récupérer l'utilisateur pour vérifier son rôle
+    final homeUserAsync = ref.watch(homeUsersProvider);
+    
+    return homeUserAsync.when(
+      data: (homeUser) {
+        // Déterminer si c'est un teacher/instructor ou un student
+        final status = homeUser.status.toLowerCase();
+        final isTeacher = status == 'instructor';
+        
+        // Pages selon le rôle
+        final pages = isTeacher
+            ? const [AdminDashboardView(), PromsPageView()]
+            : const [HomeView(), PromsPageView()];
+        
+        // Labels selon le rôle
+        final firstLabel = isTeacher ? 'Dashboard' : 'Profil';
+        final firstIcon = isTeacher ? Icons.dashboard : Icons.person;
+        
+        return Scaffold(
       // Barre optionnelle pour confirmer la connexion visuellement
       appBar: isConnected
           ? AppBar(
@@ -79,7 +98,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       body: Stack(
         children: [
           // Les pages de l'application (Home / Proms)
-          _pages[_currentIndex],
+          pages[_currentIndex],
 
           Positioned(
             bottom: 20,
@@ -163,14 +182,36 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             setState(() => _currentIndex = index);
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Promo"),
-          BottomNavigationBarItem(
+        items: [
+          BottomNavigationBarItem(icon: Icon(firstIcon), label: firstLabel),
+          const BottomNavigationBarItem(icon: Icon(Icons.list), label: "Promo"),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.output, color: Colors.red),
             label: "Déconnexion",
           ),
         ],
+      ),
+    );
+      },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Erreur: $error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => _logout(context),
+                child: const Text('Se déconnecter'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

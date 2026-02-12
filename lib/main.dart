@@ -3,11 +3,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:a4_iot/core/config/env.dart';
+import 'package:a4_iot/core/config/app_theme.dart';
 import 'package:a4_iot/presentation/views/login_view.dart';
 import 'package:a4_iot/presentation/widget/main_layout.dart';
-// Import your BLE utils
 import 'package:a4_iot/utils/ble_listening.dart';
 
 void main() async {
@@ -18,6 +19,9 @@ void main() async {
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseKey);
 
   await Hive.initFlutter();
+  
+  // Initialiser les locales françaises
+  await initializeDateFormatting('fr_FR', null);
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -29,6 +33,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'CESI IoT',
+      theme: AppTheme.lightTheme,
       home: const AuthGate(),
     );
   }

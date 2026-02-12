@@ -12,12 +12,14 @@ class CampusModel extends Campus {
 
   factory CampusModel.fromMap(Map<String, dynamic> map) {
     return CampusModel(
-      id: map['id'],
-      name: map['name'],
-      city: map['city'],
-      address: map['address'],
-      zipCode: map['zip_code'],
-      createdAt: DateTime.parse(map['created_at'] as String),
+      id: map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? 'Inconnu',
+      city: map['city']?.toString() ?? 'Ville inconnue',
+      address: map['address']?.toString() ?? 'Adresse inconnue',
+      zipCode: map['zip_code']?.toString() ?? '00000',
+      createdAt: map['created_at'] != null 
+          ? DateTime.parse(map['created_at'].toString()) 
+          : DateTime.now(),
     );
   }
 

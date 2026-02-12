@@ -10,10 +10,12 @@ class PromsModel extends Proms {
 
   factory PromsModel.fromMap(Map<String, dynamic> map) {
     return PromsModel(
-      id: map['id'],
-      name: map['name'],
-      campusId: map['campus_id'],
-      createdAt: DateTime.parse(map['created_at'] as String),
+      id: map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? 'Inconnu',
+      campusId: map['campus_id']?.toString() ?? '',
+      createdAt: map['created_at'] != null 
+          ? DateTime.parse(map['created_at'].toString()) 
+          : DateTime.now(),
     );
   }
 

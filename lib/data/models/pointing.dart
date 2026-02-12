@@ -4,20 +4,22 @@ class PointingModel extends Pointing {
   PointingModel({
     required super.id,
     required super.userBadgeId,
-    required super.createdAt,
+    required super.date,
   });
 
   factory PointingModel.fromMap(Map<String, dynamic> map) {
     return PointingModel(
-      id: map['id'],
-      userBadgeId: map['user_badge_id'],
-      createdAt: DateTime.parse(map['created_at'] as String),
+      id: map['id']?.toString() ?? '',
+      userBadgeId: map['user_badge_id']?.toString() ?? '',
+      date: map['Date'] != null 
+          ? DateTime.parse(map['Date'].toString()) 
+          : DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() => {
     "id": id,
     "user_badge_id": userBadgeId,
-    "created_at": createdAt,
+    "Date": date,
   };
 }
