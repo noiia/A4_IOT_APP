@@ -3,16 +3,22 @@ class Courses {
   final String courseName;
   final String instructorId;
   final String roomId;
-  final String reservationId;
   final DateTime createdAt;
+  final DateTime start;
+  final DateTime end;
+  final String room;
+  final String promsId;
 
   Courses({
     required this.id,
     required this.courseName,
     required this.instructorId,
     required this.roomId,
-    required this.reservationId,
-    required this.createdAt,
+    required this.createdAt, 
+    required this.start,
+    required this.end,
+    required this.room,
+    required this.promsId,
   });
 }
 

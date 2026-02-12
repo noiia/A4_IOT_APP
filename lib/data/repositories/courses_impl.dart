@@ -59,7 +59,9 @@ class CourseRepositoryImpl implements CourseRepository {
       );
 
       return result;
-    } catch (_) {
+    } catch (e) {
+      print('Error fetching home courses: $e');
+      
       final localData = await local.getCachedUserCourses();
 
       return localData != null

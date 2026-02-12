@@ -6,8 +6,11 @@ class CoursesModel extends Courses {
     required super.courseName,
     required super.instructorId,
     required super.roomId,
-    required super.reservationId,
     required super.createdAt,
+    required super.start,
+    required super.end,
+    required super.room,
+    required super.promsId,
   });
 
   factory CoursesModel.fromMap(Map<String, dynamic> map) {
@@ -16,8 +19,11 @@ class CoursesModel extends Courses {
       courseName: map['course_name'],
       instructorId: map['instructor_id'],
       roomId: map['room_id'],
-      reservationId: map['reservation_id'],
       createdAt: DateTime.parse(map['created_at'] as String),
+      start: DateTime.parse(map['start'] as String),
+      end: DateTime.parse(map['end'] as String),
+      room: map['room'],
+      promsId: map['proms_id']
     );
   }
 
@@ -26,8 +32,11 @@ class CoursesModel extends Courses {
     "course_name": courseName,
     "instructor_id": instructorId,
     "room_id": roomId,
-    "reservation_id": reservationId,
     "created_at": createdAt.toIso8601String(),
+    "start": start.toIso8601String(),
+    "end": end.toIso8601String(),
+    "room": room,
+    "proms_id": promsId,
   };
 }
 
